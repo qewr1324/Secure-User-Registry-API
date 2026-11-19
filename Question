@@ -65,3 +65,16 @@ age:
 The record has four components: id, username, fullName, age.
 Add a one-sentence Java comment above UserResponse explaining why we use a separate response DTO instead of
 returning the entity
+
+---------------------------------------------------------------------------------
+
+Repository — UserInfoRepository Create UserInfoRepository in package com.securevault.repository with: • @Repository on the class • An EntityManager injected with @PersistenceContext • Three methods: o create(...) — persists a UserInfoDao and returns it o findAll() — returns a List<UserInfoDao> using JPQL that selects all users o findByUsername(String username) — returns an Optional<UserInfoDao> using JPQL with a named parameter (:username), bound with setParameter(...), and returning the result via getResultStream().findFirst() 💡 Hint: For findByUsername, recall exactly how the teacher wrote the JPQL in the session. The entity name — not the table name — must appear in the query.
+Exception — UsernameAlreadyExistsException Create in package com.securevault.exception a custom unchecked exception named UsernameAlreadyExistsException. Its constructor must accept a username: String and pass a message to RuntimeException in the form: "Username already exists: " + username. 💡 Note: We will learn how to handle this exception globally with @RestControllerAdvice (AOP) in a future session. For now, just throw it — the API will return a 500 if it's thrown. That is expected
+
+
+Services 8-1. UserSignupService • Annotated as a service bean • Constructor injection of UserInfoRepository and PasswordEncoder — fields must be final • One method, annotated with @Transactional, named signup(...): It receives a SignupRequest and:
+Checks whether the username already exists in the database. If it does, throws UsernameAlreadyExistsException.
+Hashes the plain-text password from the request using PasswordEncoder.
+Creates a UserInfoDao with the hashed password (not the raw one) and the other fields from the request.
+Persists it via the repository.
+Returns a UserResponse built from the persisted entity. 8-2. UserQueryService • Annotated as a service bean • Constructor injection of UserInfoRepository — field must be final • Methods: o findAll() — returns List<UserResponse> without passwords o findByUsername(String username) — returns a UserResponse (or null if not found)
